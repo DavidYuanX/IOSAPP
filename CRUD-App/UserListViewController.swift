@@ -13,6 +13,12 @@ class UserListViewController: UIViewController, UITableViewDelegate, UITableView
         target: nil,
         action: nil
     )
+    private let logoutBarButtonItem = UIBarButtonItem(
+        title: "退出",
+        style: .plain,
+        target: nil,
+        action: nil
+    )
     private var users: [User] = []
 
     override func viewDidLoad() {
@@ -31,8 +37,11 @@ class UserListViewController: UIViewController, UITableViewDelegate, UITableView
         view.backgroundColor = .systemBackground
 
         navigationItem.rightBarButtonItem = addBarButtonItem
+        navigationItem.leftBarButtonItem = logoutBarButtonItem
         addBarButtonItem.target = self
         addBarButtonItem.action = #selector(addUserTapped)
+        logoutBarButtonItem.target = self
+        logoutBarButtonItem.action = #selector(logoutTapped)
 
         tableView.delegate = self
         tableView.dataSource = self
@@ -61,6 +70,10 @@ class UserListViewController: UIViewController, UITableViewDelegate, UITableView
                 }
             }
         }
+    }
+
+    @objc private func logoutTapped() {
+        APIService.shared.logout()
     }
 
     @objc private func addUserTapped() {
