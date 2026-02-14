@@ -7,7 +7,7 @@ import Foundation
 
 class APIService {
     static let shared = APIService()
-    private let baseURL = "http://localhost:8080/api/users"
+    private let baseURL = "http://192.168.0.101:8080/api/users"
 
     private init() {}
 
@@ -29,7 +29,12 @@ class APIService {
             request.httpBody = body
         }
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch let urlError as URLError where urlError.code == .notConnectedToInternet || urlError.code == .networkConnectionLost || urlError.code == .dataNotAllowed {
+            throw APIError.offline
+        }
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
@@ -59,7 +64,12 @@ class APIService {
             request.httpBody = body
         }
 
-        let (_, response) = try await URLSession.shared.data(for: request)
+        let response: URLResponse
+        do {
+            (_, response) = try await URLSession.shared.data(for: request)
+        } catch let urlError as URLError where urlError.code == .notConnectedToInternet || urlError.code == .networkConnectionLost || urlError.code == .dataNotAllowed {
+            throw APIError.offline
+        }
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw APIError.invalidResponse
@@ -108,6 +118,7 @@ enum APIError: Error, LocalizedError {
     case invalidResponse
     case serverError(Int)
     case decodingError
+    case offline
 
     var errorDescription: String? {
         switch self {
@@ -119,6 +130,8 @@ enum APIError: Error, LocalizedError {
             return "Server error: \(code)"
         case .decodingError:
             return "Failed to decode response"
+        case .offline:
+            return "No internet connection. Please check your network and try again."
         }
     }
 }
